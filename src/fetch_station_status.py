@@ -1,3 +1,4 @@
+from google.cloud import storage
 from datetime import datetime, timezone
 from pathlib import Path
 import json
@@ -9,6 +10,7 @@ STATION_STATUS_URL = (
     "https://gbfs.citibikenyc.com/gbfs/en/station_status.json"
 )
 
+BUCKET_NAME = "citibike-operations-colin-2026-data"
 
 def build_output_file() -> Path:
     """Create a timestamped raw-data file path."""
@@ -65,17 +67,64 @@ def save_json(data: dict, output_file: Path) -> None:
     with output_file.open("w", encoding="utf-8") as file:
         json.dump(data, file, indent=2)
 
+def upload_to_cloud_storage(local_file: Path) -> str:
+    """Upload a local raw JSON file to the Cloud Storage raw zone."""
+
+    client = storage.Client()
+    bucket = client.bucket(BUCKET_NAME)
+
+    blob_name = f"raw/{local_file.name}"
+    blob = bucket.blob(blob_name)
+
+    blob.upload_from_filename(local_file)
+
+    return f"gs://{BUCKET_NAME}/{blob_name}"
+
+def verify_cloud_upload(local_file: Path, cloud_path: str) -> None:
+    """Confirm the uploaded object exists and matches the local file size."""
+
+    client = storage.Client()
+
+    bucket_name, blob_name = cloud_path.replace("gs://", "").split("/", 1)
+
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(blob_name)
+    blob.reload()
+
+    local_size = local_file.stat().st_size
+
+    if blob.size != local_size:
+        raise ValueError(
+            f"Upload size mismatch: local={local_size}, cloud={blob.size}"
+        )
 
 def main() -> None:
-    station_data = fetch_station_status()
-    station_count = validate_station_status(station_data)
+    try:
+        station_data = fetch_station_status()
+        station_count = validate_station_status(station_data)
 
-    station_data = add_collection_metadata(station_data)
+        station_data = add_collection_metadata(station_data)
 
-    output_file = build_output_file()
-    save_json(station_data, output_file)
+        output_file = build_output_file()
+        save_json(station_data, output_file)
 
-    print(f"Saved {station_count:,} station records to {output_file}")
+        cloud_path = upload_to_cloud_storage(output_file)
+        verify_cloud_upload(output_file, cloud_path)
+
+    except requests.RequestException as error:
+        print(f"API request failed: {error}")
+        raise
+
+    except OSError as error:
+        print(f"Local file operation failed: {error}")
+        raise
+
+    except Exception as error:
+        print(f"Pipeline failed: {error}")
+        raise
+
+    print(f"Saved {station_count:,} station records locally to {output_file}")
+    print(f"Uploaded and verified raw snapshot at {cloud_path}")
 
 
 if __name__ == "__main__":
