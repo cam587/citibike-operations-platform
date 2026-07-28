@@ -45,3 +45,10 @@
 - Another active station had 11 of 12 bikes disabled, producing a 91.67% disabled-bike rate.
 - A third active station had 9 of 11 bikes disabled, producing an 81.82% disabled-bike rate.
 - Filtering to stations with at least 10 bikes created a more useful priority list by balancing outage severity with operational scale.
+
+## Customer Availability Findings
+
+- 105 active stations had zero bikes available, preventing customers from starting trips.
+- 288 active stations had zero open docks, preventing customers from returning bikes.
+- No active stations had both zero bikes and zero docks.
+- Zero-dock stations were more common than zero-bike stations in this snapshot, suggesting return availability was the larger immediate customer issue.
