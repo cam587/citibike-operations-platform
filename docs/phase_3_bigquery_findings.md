@@ -52,3 +52,16 @@
 - 288 active stations had zero open docks, preventing customers from returning bikes.
 - No active stations had both zero bikes and zero docks.
 - Zero-dock stations were more common than zero-bike stations in this snapshot, suggesting return availability was the larger immediate customer issue.
+
+## Customer Availability Rates
+
+- 4.44% of active stations had zero bikes available.
+- 12.19% of active stations had zero open docks.
+- The zero-dock rate was nearly three times the zero-bike rate.
+- In this snapshot, customers were more likely to have difficulty returning a bike than finding one to rent.
+
+## Station Operational Status
+
+- 2,363 stations were fully active, with both renting and returning enabled.
+- 98 stations were fully inactive, with both renting and returning disabled.
+- No stations had a mixed operational status in this snapshot.
