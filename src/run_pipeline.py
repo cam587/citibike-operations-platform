@@ -3,6 +3,9 @@
 from pathlib import Path
 
 import requests
+import fetch_station_information
+import transform_station_information
+import load_station_information
 from google.cloud import bigquery, storage
 
 from fetch_station_status import (
@@ -95,6 +98,12 @@ def main() -> None:
             processed_cloud_path
         )
 
+        print("Refreshing station-information reference data...")
+
+        fetch_station_information.main()
+        transform_station_information.main()
+        load_station_information.main()
+
     except requests.RequestException as error:
         print(f"API request failed: {error}")
         raise
@@ -117,7 +126,7 @@ def main() -> None:
     print(f"BigQuery destination table: {BIGQUERY_DESTINATION_TABLE}")
     print(f"Number of rows loaded: {rows_loaded:,}")
     print(f"BigQuery job ID: {bigquery_job_id}")
-
+    print("Station-information reference table refreshed.")
 
 if __name__ == "__main__":
     main()
